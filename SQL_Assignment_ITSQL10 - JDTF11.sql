@@ -74,14 +74,9 @@ INSERT INTO Employees VALUES
 -- =====================================================
 
 SELECT 
-    o.OrderID,
-    c.CustomerName,
-    o.OrderAmount,
-    o.OrderDate,
-    o.Status
-FROM Orders o
-JOIN Customers c
-    ON o.CustomerID = c.CustomerID
+    o.OrderID, c.CustomerName, o.OrderAmount, o.OrderDate, o.Status
+FROM Orders o JOIN Customers c
+ON o.CustomerID = c.CustomerID
 ORDER BY o.OrderAmount DESC
 LIMIT 5;
 
@@ -90,8 +85,7 @@ LIMIT 5;
 -- QUESTION 2 : Display customers whose names start with A, R, or S. Without using multiple OR conditions.
 -- =====================================================
 
-SELECT *
-FROM Customers
+SELECT * FROM Customers
 WHERE LEFT(CustomerName, 1) IN ('A', 'R', 'S');
 
 
@@ -99,27 +93,19 @@ WHERE LEFT(CustomerName, 1) IN ('A', 'R', 'S');
 -- QUESTION 3: Customers who have placed orders worth more than  ₹10,000 but whose order status is Pending.
 -- =====================================================
 
-SELECT DISTINCT
-    c.CustomerName,
-    o.OrderID,
-    o.OrderAmount,
-    o.Status
-FROM Customers c
-JOIN Orders o
-    ON c.CustomerID = o.CustomerID
+SELECT DISTINCT c.CustomerName, o.OrderID, o.OrderAmount, o.Status
+FROM Customers c JOIN Orders o
+ON c.CustomerID = o.CustomerID
 WHERE o.OrderAmount > 10000
-  AND o.Status = 'Pending';
+AND o.Status = 'Pending';
 
 
 -- =====================================================
 -- QUESTION 4: Customers who joined more than 365 days ago. Display the number of days associated with the company.
 -- =====================================================
 
-SELECT DISTINCT
-    CustomerID,
-    CustomerName,
-    JoinDate,
-    DATEDIFF(CURRENT_DATE(), JoinDate) AS `Associated Days`
+SELECT DISTINCT CustomerID, CustomerName, JoinDate,
+DATEDIFF(CURRENT_DATE(), JoinDate) AS `Associated Days`
 FROM Customers
 WHERE DATEDIFF(CURRENT_DATE(), JoinDate) > 365;
 
@@ -134,12 +120,8 @@ WHERE DATEDIFF(CURRENT_DATE(), JoinDate) > 365;
 -- Expected Collection Date (15 days after order date)
 -- =====================================================
 
-SELECT 
-    OrderID,
-    OrderAmount AS `Current Amount`,
-    ROUND(OrderAmount * 0.18, 2) AS `18% GST`,
-    ROUND(OrderAmount * 1.18, 2) AS `Total Amount After GST`,
-    DATE_ADD(OrderDate, INTERVAL 15 DAY) AS `Expected Collection Date`
+SELECT OrderID, OrderAmount AS `Current Amount`, ROUND(OrderAmount * 0.18, 2) AS `18% GST`,
+ROUND(OrderAmount * 1.18, 2) AS `Total Amount After GST`, DATE_ADD(OrderDate, INTERVAL 15 DAY) AS `Expected Collection Date`
 FROM Orders;
 
 
@@ -148,13 +130,9 @@ FROM Orders;
 -- Use LIMIT and OFFSET.
 -- =====================================================
 
-SELECT DISTINCT
-    c.CustomerName,
-    o.OrderID,
-    o.OrderAmount
-FROM Customers c
+SELECT DISTINCT c.CustomerName, o.OrderID, o.OrderAmount FROM Customers c
 JOIN Orders o
-    ON c.CustomerID = o.CustomerID
+ON c.CustomerID = o.CustomerID
 ORDER BY o.OrderAmount DESC
 LIMIT 10 OFFSET 10;
 
@@ -166,15 +144,10 @@ LIMIT 10 OFFSET 10;
 -- and Number of Days Since Registration.
 -- =====================================================
 
-SELECT DISTINCT
-    c.CustomerID,
-    c.CustomerName,
-    c.JoinDate,
-    DATEDIFF(CURRENT_DATE(), c.JoinDate) 
-        AS `Number of Days Since Registration`
-FROM Customers c
-LEFT JOIN Orders o
-    ON c.CustomerID = o.CustomerID
+SELECT DISTINCT c.CustomerID, c.CustomerName, c.JoinDate,
+DATEDIFF(CURRENT_DATE(), c.JoinDate) AS `Number of Days Since Registration`
+FROM Customers c LEFT JOIN Orders o
+ON c.CustomerID = o.CustomerID
 WHERE o.OrderID IS NULL;
 
 
@@ -183,13 +156,9 @@ WHERE o.OrderID IS NULL;
 -- Display Employee Name, Manager Name, Department.
 -- =====================================================
 
-SELECT 
-    e.EmployeeName AS `Employee Name`,
-    m.EmployeeName AS `Manager Name`,
-    e.Department
-FROM Employees e
-LEFT JOIN Employees m
-    ON e.ManagerID = m.EmployeeID;
+SELECT e.EmployeeName AS `Employee Name`, m.EmployeeName AS `Manager Name`, e.Department
+FROM Employees e LEFT JOIN Employees m
+ON e.ManagerID = m.EmployeeID;
 
 
 -- =====================================================
@@ -197,19 +166,11 @@ LEFT JOIN Employees m
 -- of joining the platform.
 -- =====================================================
 
-SELECT 
-    c.CustomerName,
-    c.JoinDate,
-    MIN(o.OrderDate) AS `Order Date`,
-    DATEDIFF(MIN(o.OrderDate), c.JoinDate) 
-        AS `Days Taken To Place First Order`
-FROM Customers c
-JOIN Orders o
-    ON c.CustomerID = o.CustomerID
-GROUP BY 
-    c.CustomerID,
-    c.CustomerName,
-    c.JoinDate
+SELECT c.CustomerName, c.JoinDate, MIN(o.OrderDate) AS `Order Date`, 
+DATEDIFF(MIN(o.OrderDate), c.JoinDate) AS `Days Taken To Place First Order`
+FROM Customers c JOIN Orders o
+ON c.CustomerID = o.CustomerID
+GROUP BY c.CustomerID, c.CustomerName, c.JoinDate
 HAVING DATEDIFF(MIN(o.OrderDate), c.JoinDate) <= 30;
 
 
@@ -221,29 +182,18 @@ HAVING DATEDIFF(MIN(o.OrderDate), c.JoinDate) <= 30;
 -- Loyalty Status
 -- =====================================================
 
-SELECT DISTINCT
-    c.CustomerName,
-    SUM(o.OrderAmount) AS `Total_Purchase_Amount`,
+SELECT DISTINCT c.CustomerName, SUM(o.OrderAmount) AS `Total_Purchase_Amount`,
+CASE WHEN SUM(o.OrderAmount) > 50000 THEN 'Premium'
+	 WHEN SUM(o.OrderAmount) >= 20000 THEN 'Gold'
+	 ELSE 'Silver'
+END AS `Spending_Category`,
 
-    CASE
-        WHEN SUM(o.OrderAmount) > 50000 THEN 'Premium'
-        WHEN SUM(o.OrderAmount) >= 20000 THEN 'Gold'
-        ELSE 'Silver'
-    END AS `Spending_Category`,
-
-    CASE
-        WHEN YEAR(c.JoinDate) < 2024 THEN 'Loyal Customer'
-        ELSE 'New Customer'
-    END AS `Loyalty_Status`
-
-FROM Customers c
-JOIN Orders o
+CASE WHEN YEAR(c.JoinDate) < 2024 THEN 'Loyal Customer'
+	ELSE 'New Customer'
+END AS `Loyalty_Status`
+FROM Customers c JOIN Orders o
     ON c.CustomerID = o.CustomerID
-
-GROUP BY 
-    c.CustomerID,
-    c.CustomerName,
-    c.JoinDate;
+GROUP BY  c.CustomerID, c.CustomerName, c.JoinDate;
 
 
 -- =====================================================
@@ -251,16 +201,10 @@ GROUP BY
 -- average order amount of all orders.
 -- =====================================================
 
-SELECT DISTINCT
-    c.CustomerName,
-    o.OrderID,
-    o.OrderAmount
-FROM Customers c
-JOIN Orders o
-    ON c.CustomerID = o.CustomerID
-WHERE o.OrderAmount > (
-    SELECT AVG(OrderAmount)
-    FROM Orders
+SELECT DISTINCT c.CustomerName, o.OrderID, o.OrderAmount
+FROM Customers c JOIN Orders o
+ON c.CustomerID = o.CustomerID
+WHERE o.OrderAmount > ( SELECT AVG(OrderAmount) FROM Orders
 );
 
 
@@ -268,12 +212,7 @@ WHERE o.OrderAmount > (
 -- QUESTION 12: Display the 2nd to 6th highest orders.
 -- =====================================================
 
-SELECT DISTINCT
-    c.CustomerName,
-    o.OrderID,
-    o.OrderAmount
-FROM Customers c
-JOIN Orders o
-    ON c.CustomerID = o.CustomerID
-ORDER BY o.OrderAmount DESC
-LIMIT 5 OFFSET 1;
+SELECT DISTINCT c.CustomerName, o.OrderID, o.OrderAmount
+FROM Customers c JOIN Orders o
+ON c.CustomerID = o.CustomerID
+ORDER BY o.OrderAmount DESC LIMIT 5 OFFSET 1;

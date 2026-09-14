@@ -73,8 +73,7 @@ INSERT INTO Employees VALUES
 -- QUESTION 1: Display the top 5 highest-value orders along with customer names.
 -- =====================================================
 
-SELECT 
-    o.OrderID, c.CustomerName, o.OrderAmount, o.OrderDate, o.Status
+SELECT o.OrderID, c.CustomerName, o.OrderAmount, o.OrderDate, o.Status
 FROM Orders o JOIN Customers c
 ON o.CustomerID = c.CustomerID
 ORDER BY o.OrderAmount DESC
